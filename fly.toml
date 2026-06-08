@@ -1,6 +1,7 @@
 app = "islamic-api"
 primary_region = "ams"
 
+# https://fly.io/docs/reference/configuration/
 [build]
 
 [http_service]
