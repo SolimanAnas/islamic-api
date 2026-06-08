@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.example
+.venv/
+venv/
+__pycache__
+*.pyc
+docs/
+README.md
+LICENSE
+fly.toml
+.dockerignore
+test-results/
+.pytest_cache/
