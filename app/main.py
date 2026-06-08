@@ -12,6 +12,8 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     load_all_data()
+    from app.services.quran_images import load_coordinates
+    load_coordinates()
     yield
 
 
@@ -54,6 +56,7 @@ def api_info():
         "docs": "/docs",
         "endpoints": {
             "quran": "/v1/quran",
+            "mushaf": "/v1/mushaf",
             "hadith": "/v1/hadith",
             "azkar": "/v1/azkar",
             "tafsir": "/v1/tafsir",
@@ -74,9 +77,10 @@ def api_info():
     }
 
 
-from app.routers import quran, hadith, azkar, tafsir, prayer, audio, duas
+from app.routers import quran, hadith, azkar, tafsir, prayer, audio, duas, mushaf
 
 app.include_router(quran.router, prefix="/v1/quran", tags=["Quran"])
+app.include_router(mushaf.router, prefix="/v1/mushaf", tags=["Mushaf"])
 app.include_router(hadith.router, prefix="/v1/hadith", tags=["Hadith"])
 app.include_router(azkar.router, prefix="/v1/azkar", tags=["Adhkar"])
 app.include_router(tafsir.router, prefix="/v1/tafsir", tags=["Tafsir"])

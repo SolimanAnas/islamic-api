@@ -6,6 +6,8 @@ from app.main import app
 @pytest.fixture(scope="session")
 def client():
     """Create a test client that shares data across all tests."""
+    from app.services.quran_images import load_coordinates
+    load_coordinates()
     with TestClient(app) as c:
         yield c
 
