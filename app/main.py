@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.services.data_loader import load_all_data
@@ -33,9 +34,15 @@ app.add_middleware(
 )
 
 
-@app.get("/", include_in_schema=False)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def root():
-    return RedirectResponse(url="/docs")
+    import os
+    index_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "index.html")
+    try:
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return RedirectResponse(url="/docs")
 
 
 @app.get("/health")
