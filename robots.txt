@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://solimananas.github.io/islamic-api/sitemap.xml
