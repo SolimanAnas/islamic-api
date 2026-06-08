@@ -1,8 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.config import get_settings
 from app.services.data_loader import load_all_data
@@ -34,21 +33,14 @@ app.add_middleware(
 )
 
 
-from pathlib import Path
-
-INDEX_PATH = Path(__file__).resolve().parent.parent / "index.html"
-
-
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/", include_in_schema=False)
 def root():
-    if INDEX_PATH.exists():
-        return HTMLResponse(content=INDEX_PATH.read_text(encoding="utf-8"))
     return RedirectResponse(url="/docs")
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": settings.APP_VERSION, "index_exists": INDEX_PATH.exists(), "index_path": str(INDEX_PATH)}
+    return {"status": "ok", "version": settings.APP_VERSION}
 
 
 @app.get("/v1")
