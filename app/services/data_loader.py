@@ -147,7 +147,7 @@ def _load_azkar(store: DataStore):
     data = _load_json(azkar_path)
     if data:
         store.azkar_morning = data.get("morning", [])
-        store.azkar_evening = data.get("evening", [])
+        store.azkar_evening = data.get("evening", data.get("night", []))
         print(f"  🕌 Azkar: morning={len(store.azkar_morning)}, evening={len(store.azkar_evening)}")
 
     sleeping_path = DATA_DIR / "azkar" / "sleeping.json"

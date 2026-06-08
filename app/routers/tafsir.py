@@ -22,7 +22,16 @@ def _get_db(book: str):
     db_path = Path(settings.TAFSIR_DIR) / db_file
     if not db_path.exists():
         return None
-    return sqlite3.connect(str(db_path))
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _get_table_name(conn):
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1")
+    row = cursor.fetchone()
+    return row[0] if row else None
 
 
 @router.get("/books", summary="List available tafsir books")
@@ -38,48 +47,6 @@ def list_tafsir_books():
     return {"success": True, "data": available}
 
 
-@router.get("/{book}/{surah}", summary="Get tafsir for a surah")
-def get_tafsir_surah(book: str, surah: int):
-    conn = _get_db(book)
-    if not conn:
-        raise HTTPException(status_code=404, detail=f"Tafsir '{book}' not available")
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM tafsir WHERE surah = ? ORDER BY ayah",
-            (surah,),
-        )
-        rows = cursor.fetchall()
-        cols = [d[0] for d in cursor.description]
-        data = [dict(zip(cols, row)) for row in rows]
-        return {"success": True, "data": data, "count": len(data)}
-    finally:
-        conn.close()
-
-
-@router.get("/{book}/{surah}/{ayah}", summary="Get tafsir for a specific ayah")
-def get_tafsir_ayah(book: str, surah: int, ayah: int):
-    conn = _get_db(book)
-    if not conn:
-        raise HTTPException(status_code=404, detail=f"Tafsir '{book}' not available")
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM tafsir WHERE surah = ? AND ayah = ?",
-            (surah, ayah),
-        )
-        rows = cursor.fetchall()
-        cols = [d[0] for d in cursor.description]
-        data = [dict(zip(cols, row)) for row in rows]
-        if not data:
-            raise HTTPException(status_code=404, detail="Tafsir not found for this ayah")
-        return {"success": True, "data": data[0]}
-    finally:
-        conn.close()
-
-
 @router.get("/{book}/search", summary="Search within a tafsir book")
 def search_tafsir(
     book: str,
@@ -92,23 +59,22 @@ def search_tafsir(
         raise HTTPException(status_code=404, detail=f"Tafsir '{book}' not available")
 
     try:
+        table = _get_table_name(conn)
         cursor = conn.cursor()
         offset = (page - 1) * per_page
         cursor.execute(
-            "SELECT COUNT(*) FROM tafsir WHERE text LIKE ?",
+            f"SELECT COUNT(*) FROM [{table}] WHERE Tafsir LIKE ?",
             (f"%{q}%",),
         )
         total = cursor.fetchone()[0]
         cursor.execute(
-            "SELECT * FROM tafsir WHERE text LIKE ? LIMIT ? OFFSET ?",
+            f"SELECT SURA_num, AYA_num, Tafsir FROM [{table}] WHERE Tafsir LIKE ? LIMIT ? OFFSET ?",
             (f"%{q}%", per_page, offset),
         )
-        rows = cursor.fetchall()
-        cols = [d[0] for d in cursor.description]
-        data = [dict(zip(cols, row)) for row in rows]
+        rows = [dict(row) for row in cursor.fetchall()]
         return {
             "success": True,
-            "data": data,
+            "data": rows,
             "meta": {
                 "page": page,
                 "per_page": per_page,
@@ -116,5 +82,45 @@ def search_tafsir(
                 "total_pages": max(1, (total + per_page - 1) // per_page),
             },
         }
+    finally:
+        conn.close()
+
+
+@router.get("/{book}/{surah}/{ayah}", summary="Get tafsir for a specific ayah")
+def get_tafsir_ayah(book: str, surah: int, ayah: int):
+    conn = _get_db(book)
+    if not conn:
+        raise HTTPException(status_code=404, detail=f"Tafsir '{book}' not available")
+
+    try:
+        table = _get_table_name(conn)
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT SURA_num, AYA_num, Tafsir FROM [{table}] WHERE SURA_num = ? AND AYA_num = ?",
+            (surah, ayah),
+        )
+        rows = [dict(row) for row in cursor.fetchall()]
+        if not rows:
+            raise HTTPException(status_code=404, detail="Tafsir not found for this ayah")
+        return {"success": True, "data": rows[0]}
+    finally:
+        conn.close()
+
+
+@router.get("/{book}/{surah}", summary="Get tafsir for a surah")
+def get_tafsir_surah(book: str, surah: int):
+    conn = _get_db(book)
+    if not conn:
+        raise HTTPException(status_code=404, detail=f"Tafsir '{book}' not available")
+
+    try:
+        table = _get_table_name(conn)
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT SURA_num, AYA_num, Tafsir FROM [{table}] WHERE SURA_num = ? ORDER BY AYA_num",
+            (surah,),
+        )
+        rows = [dict(row) for row in cursor.fetchall()]
+        return {"success": True, "data": rows, "count": len(rows)}
     finally:
         conn.close()

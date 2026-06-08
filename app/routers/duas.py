@@ -18,15 +18,6 @@ def list_dua_books():
     }
 
 
-@router.get("/{book_id}", summary="Get a dua book")
-def get_dua_book(book_id: str):
-    store = get_store()
-    book = store.dua_books.get(book_id)
-    if not book:
-        raise HTTPException(status_code=404, detail=f"Book '{book_id}' not found")
-    return {"success": True, "data": book}
-
-
 @router.get("/search", summary="Search across all duas")
 def search_duas(
     q: str = Query(..., min_length=2, description="Search query"),
@@ -41,3 +32,12 @@ def search_duas(
     results = search_items(all_items, q, ["arabic", "ar", "title"])
     data, meta = paginate(results, page, per_page)
     return {"success": True, "data": data, "meta": meta}
+
+
+@router.get("/{book_id}", summary="Get a dua book")
+def get_dua_book(book_id: str):
+    store = get_store()
+    book = store.dua_books.get(book_id)
+    if not book:
+        raise HTTPException(status_code=404, detail=f"Book '{book_id}' not found")
+    return {"success": True, "data": book}
