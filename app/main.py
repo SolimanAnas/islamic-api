@@ -34,20 +34,21 @@ app.add_middleware(
 )
 
 
+from pathlib import Path
+
+INDEX_PATH = Path(__file__).resolve().parent.parent / "index.html"
+
+
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def root():
-    import os
-    index_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "index.html")
-    try:
-        with open(index_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return RedirectResponse(url="/docs")
+    if INDEX_PATH.exists():
+        return HTMLResponse(content=INDEX_PATH.read_text(encoding="utf-8"))
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": settings.APP_VERSION}
+    return {"status": "ok", "version": settings.APP_VERSION, "index_exists": INDEX_PATH.exists(), "index_path": str(INDEX_PATH)}
 
 
 @app.get("/v1")
