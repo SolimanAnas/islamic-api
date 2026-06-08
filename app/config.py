@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         "Hisn Muslim adhkar, duas, tafsir, prayer times, and audio resources. "
         "All data is sourced from authenticated Islamic references."
     )
-    APP_URL: str = "https://islamic-api.vercel.app"
+    APP_URL: str = "https://islamic-api.fly.dev"
     DOCS_URL: str = "/docs"
     REDOC_URL: str = "/redoc"
 

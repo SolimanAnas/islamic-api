@@ -4,9 +4,9 @@
 
 A comprehensive REST API providing authenticated Islamic data for developers building Muslim-focused applications. All data is sourced from verified Islamic references.
 
-> **Base URL:** `https://islamic-api.vercel.app`
-> **Docs:** `https://islamic-api.vercel.app/docs` (Swagger UI)
-> **Redoc:** `https://islamic-api.vercel.app/redoc`
+> **Base URL:** `https://islamic-api.fly.dev`
+> **Docs:** `https://islamic-api.fly.dev/docs` (Swagger UI)
+> **Redoc:** `https://islamic-api.fly.dev/redoc`
 
 ---
 
@@ -16,28 +16,28 @@ A comprehensive REST API providing authenticated Islamic data for developers bui
 
 ```bash
 # Get all 114 Quran surahs
-curl https://islamic-api.vercel.app/v1/quran/surahs
+curl https://islamic-api.fly.dev/v1/quran/surahs
 
 # Get Surah Al-Fatiha
-curl https://islamic-api.vercel.app/v1/quran/surah/1
+curl https://islamic-api.fly.dev/v1/quran/surah/1
 
 # Search Quran
-curl "https://islamic-api.vercel.app/v1/quran/search?q=الرحمن&lang=ar"
+curl "https://islamic-api.fly.dev/v1/quran/search?q=الرحمن&lang=ar"
 
 # Get Hadith from Bukhari
-curl "https://islamic-api.vercel.app/v1/hadith/bukhari?page=1&per_page=5"
+curl "https://islamic-api.fly.dev/v1/hadith/bukhari?page=1&per_page=5"
 
 # Get Hisn Muslim chapters
-curl https://islamic-api.vercel.app/v1/azkar/hisn/chapters
+curl https://islamic-api.fly.dev/v1/azkar/hisn/chapters
 
 # Get morning adhkar
-curl https://islamic-api.vercel.app/v1/azkar/morning
+curl https://islamic-api.fly.dev/v1/azkar/morning
 
 # Get prayer times
-curl "https://islamic-api.vercel.app/v1/prayer/times?city=Cairo"
+curl "https://islamic-api.fly.dev/v1/prayer/times?city=Cairo"
 
 # Get radio stations
-curl https://islamic-api.vercel.app/v1/audio/stations
+curl https://islamic-api.fly.dev/v1/audio/stations
 ```
 
 ### Run locally
@@ -189,11 +189,18 @@ If you deploy your own instance and want rate limiting, add API key support via 
 
 ## Deployment
 
-### Vercel (Recommended — Free)
+### Fly.io (Recommended — Free)
 
-1. Fork this repo
-2. Connect to Vercel
-3. Vercel auto-detects `app/main.py`
+```bash
+fly auth login
+fly launch
+fly deploy
+```
+
+Or deploy via the [Fly.io dashboard](https://fly.io/apps):
+1. Import `SolimanAnas/islamic-api`
+2. Branch: `main`
+3. Region: closest to your users
 4. Deploy
 
 ### Railway ($5/month)
@@ -202,14 +209,6 @@ If you deploy your own instance and want rate limiting, add API key support via 
 railway login
 railway init
 railway up
-```
-
-### Fly.io (Free tier)
-
-```bash
-fly auth login
-fly launch
-fly deploy
 ```
 
 ### Self-hosted
@@ -264,6 +263,8 @@ islamic-api/
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
+├── fly.toml
+├── .dockerignore
 ├── .env.example
 ├── LICENSE
 └── README.md

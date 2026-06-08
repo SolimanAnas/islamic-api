@@ -1,37 +1,81 @@
 # Deployment Guide
 
-## Vercel (Recommended)
+## Fly.io (Recommended)
 
 ### Prerequisites
 - GitHub account
-- Vercel account (free tier works)
+- Fly.io account ([fly.io](https://fly.io) — free tier works)
 
-### Steps
+### CLI Deploy
 
-1. **Fork the repository**
-   ```bash
-   # On GitHub, click "Fork" or:
-   gh repo fork SolimanAnas/islamic-api
-   ```
+```bash
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
 
-2. **Connect to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Click "New Project"
-   - Import your forked repo
+# Login
+fly auth login
 
-3. **Configure**
-   - Framework Preset: **Other**
-   - Build Command: `pip install -r requirements.txt`
-   - Output Directory: `.`
+# Launch (uses existing fly.toml)
+fly launch
 
-4. **Deploy**
-   - Click "Deploy"
-   - Your API is live at `https://your-project.vercel.app`
+# Deploy
+fly deploy
+```
 
-### Limitations
-- 100 GB bandwidth/month (free tier)
-- 10 second function timeout (free tier)
-- 50 MB max serverless function size
+### Dashboard Deploy
+
+1. Go to [fly.io/apps](https://fly.io/apps)
+2. Click **Create App**
+3. Import `SolimanAnas/islamic-api`
+4. **Branch:** `main`
+5. **Region:** Choose closest to your users (e.g., `ams` for Europe, `iad` for US East)
+6. **VM:** Shared CPU, 512MB RAM
+7. Click **Deploy**
+
+### Configuration
+
+The `fly.toml` is pre-configured:
+
+```toml
+app = "islamic-api"
+primary_region = "ams"
+
+[build]
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+```
+
+### Cost
+- **Free allowance:** 3 shared-cpu-1x VMs, 256MB RAM, 160GB bandwidth/month
+- **Your usage:** 1 VM, 512MB RAM → ~$0-2/month (within free allowance)
+- **Always-on:** `min_machines_running = 1` ensures no cold starts
+
+### Custom Domain
+
+```bash
+fly certs add yourdomain.com
+fly ips allocate-v4
+```
+
+### Useful Commands
+
+```bash
+fly status          # Check app status
+fly logs            # View live logs
+fly restart         # Restart the app
+fly ssh console     # SSH into the VM
+fly deploy          # Redeploy after changes
+```
 
 ---
 
@@ -65,31 +109,23 @@ railway open
 
 ---
 
-## Fly.io
+## Render
 
 ### Steps
 
-```bash
-# Install Fly CLI
-curl -L https://fly.io/install.sh | sh
+1. Go to [render.com](https://render.com)
+2. Click **New Web Service**
+3. Connect your GitHub repo
+4. Configure:
+   - **Name:** `islamic-api`
+   - **Runtime:** Python
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+5. Click **Deploy**
 
-# Login
-fly auth login
-
-# Launch (creates fly.toml)
-fly launch
-
-# Deploy
-fly deploy
-
-# Check status
-fly status
-```
-
-### Free Tier
-- 256 MB RAM
-- 3 GB storage
-- Shared CPU
+### Cost
+- **Free tier:** 750 hours/month, sleeps after 15min inactivity
+- **Starter ($7/month):** Always-on, no sleep
 
 ---
 
