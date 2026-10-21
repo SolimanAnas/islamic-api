@@ -3,12 +3,18 @@ name: Publish Al-Minshawy (new murattal) audio
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - .github/workflows/minshawy-release.yml
       - scripts/fetch_minshawy_new.py
 
 permissions:
   contents: write
+
+# Uploads replace assets in place, so two runs at once delete each other's files.
+concurrency:
+  group: minshawy-release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -32,4 +38,14 @@ jobs:
               --title "Al-Minshawy — المصحف المرتل الجديد (MP3)" \
               --notes "MP3 recitation by Sheikh Mohamed Siddiq Al-Minshawi (Hafs 'an 'Asim). Track list: Al-Minshawy-new/index.json."
           fi
-          gh release upload al-minshawy-new audio-out/*.mp3 audio-out/index.json --clobber
+          # Only replace assets whose size changed: --clobber deletes the old
+          # asset before uploading, so the track 404s for listeners meanwhile.
+          gh release view al-minshawy-new --json assets \
+            --jq '.assets[] | "\(.name) \(.size)"' > remote-sizes.txt
+          for f in audio-out/*.mp3 audio-out/index.json; do
+            name=$(basename "$f")
+            if ! grep -qx "$name $(stat -c %s "$f")" remote-sizes.txt; then
+              gh release upload al-minshawy-new "$f" --clobber
+              echo "uploaded $name"
+            fi
+          done
