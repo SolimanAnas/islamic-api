@@ -11,3 +11,7 @@ build/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Audio is published as GitHub Release assets (see Al-Minshawy-new/README.md)
+Al-Minshawy-new/*.mp3
+Al-Minshawy-new/.src/
