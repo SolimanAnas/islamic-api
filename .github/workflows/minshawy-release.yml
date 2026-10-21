@@ -1,0 +1,35 @@
+name: Publish Al-Minshawy (new murattal) audio
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/minshawy-release.yml
+      - scripts/fetch_minshawy_new.py
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Download audio from MediaFire
+        run: python scripts/fetch_minshawy_new.py audio-out
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view al-minshawy-new >/dev/null 2>&1; then
+            gh release create al-minshawy-new --target "$GITHUB_SHA" \
+              --title "Al-Minshawy — المصحف المرتل الجديد (MP3)" \
+              --notes "MP3 recitation by Sheikh Mohamed Siddiq Al-Minshawi (Hafs 'an 'Asim). Track list: Al-Minshawy-new/index.json."
+          fi
+          gh release upload al-minshawy-new audio-out/*.mp3 audio-out/index.json --clobber
